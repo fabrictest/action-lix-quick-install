@@ -1,18 +1,19 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "always-update": true,
+  "changelog-type": "github",
   "packages": {
     ".": {
-      "release-type": "simple",
       "exclude-paths": [
         ".github",
         "examples"
-      ]
+      ],
+      "release-type": "simple",
+      "version-file": "VERSION.txt"
     }
   },
   "plugins": [
     "sentence-case"
   ],
-  "pull-request-header": ":robot: I have created a release *beep* *boop*\n",
-  "version-file": "VERSION.txt"
+  "pull-request-header": ":robot: I have created a release *beep* *boop*\n"
 }
