@@ -120,7 +120,7 @@ jobs:
       - name: Mark release PR as published
         shell: bash
         run: |
-           gh pr list --search "$head_sha"' is:merged label:"autorelease: tagged" sort:created-desc' --limit 1 --json number --jq '.[0].number' |
+          gh pr list --search "$head_sha"' is:merged label:"autorelease: tagged" sort:created-desc' --limit 1 --json number --jq '.[0].number' |
               xargs -I {} -- gh pr edit {} --add-label 'autorelease: published' --remove-label 'autorelease: tagged'
         env:
           GH_TOKEN: ${{ steps.bot-token.outputs.token }}
