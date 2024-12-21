@@ -38,6 +38,7 @@ jobs:
     name: Fetch variables resolved during CI
     needs:
       - release
+    if: ${{ needs.release.outputs.created }}
     runs-on: ubuntu-latest
     outputs:
       json: ${{ steps.vars.outputs.json }}
