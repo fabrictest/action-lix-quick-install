@@ -14,5 +14,5 @@
     "sentence-case"
   ],
   "pull-request-header": ":robot: I have created a release *beep* *boop*\n",
-  "version-file": "VERSION.txt"
+  "version-file": "VERSION"
 }
