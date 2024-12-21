@@ -1,5 +1,5 @@
 { inputs, cell }:
 let
-  inherit (inputs) nixpkgs;
+  inherit (inputs) nixpkgs nixpkgs-unstable;
 in
-nixpkgs
+import nixpkgs-unstable { inherit (nixpkgs) system; }

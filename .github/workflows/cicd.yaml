@@ -1,0 +1,45 @@
+---
+name: CICD
+on:
+  push:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yaml
+    permissions:
+      attestations: write
+      id-token: write
+  test:
+    needs:
+      - build
+    name: Test
+    uses: ./.github/workflows/test.yaml
+    secrets:
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      CACHIX_NAME: ${{ secrets.CACHIX_NAME }}
+  release:
+    needs:
+      - test
+    name: Release
+    uses: ./.github/workflows/release.yaml
+    secrets:
+      CICD_APP_ID: ${{ secrets.CICD_APP_ID }}
+      CICD_PRIVATE_KEY: ${{ secrets.CICD_PRIVATE_KEY }}
+  publish:
+    needs:
+      - release
+    name: Publish
+    if: ${{ needs.release.outputs.tag }}
+    permissions:
+      id-token: write
+    uses: ./.github/workflows/publish.yaml
+    with:
+      tag: ${{ needs.release.outputs.tag }}
+    secrets:
+      CICD_APP_ID: ${{ secrets.CICD_APP_ID }}
+      CICD_PRIVATE_KEY: ${{ secrets.CICD_PRIVATE_KEY }}

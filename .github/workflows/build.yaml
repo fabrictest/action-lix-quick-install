@@ -1,0 +1,56 @@
+---
+name: Build
+on:
+  workflow_call:
+jobs:
+  for-each-runner:
+    strategy:
+      fail-fast: true
+      matrix:
+        runner:
+          - macos-latest
+          - ubuntu-latest
+          # NOTE(ttlgcc): macos-13 is the last Intel-powered macOS runner.
+          - macos-13
+    name: For ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      id-token: write
+    steps:
+      - name: Bootstrap Lix
+        uses: fabrictest/action-lix-quick-install@a26983acff7d1282354fdf48f1e4dcb883bfb85e # v7.3.0
+      - name: Set up Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b # v8
+        with:
+          diagnostic-endpoint: ""
+          use-flakehub: false
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Build `/nix` tarballs
+        shell: bash
+        run: |
+          nix build .#lix-tarballs
+      - name: Upload `/nix` tarballs to GitHub
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        with:
+          name: lix-tarballs-${{ runner.os }}-${{ runner.arch }}
+          path: result/lix-*.tar.*
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 7
+      - name: Generate file specifying which Lix versions were built for this platform
+        shell: bash
+        env:
+          runner: ${{ matrix.runner }}
+        run: |
+          printf %s\\n result/lix-*.tar.* |
+            cut -d - -f 2 |
+            jq --compact-output --raw-input --arg runner "$runner" '$ARGS.named + {"lix-version": .}' >lix-versions-"$runner".jsonl
+      - name: Upload lix-versions file to GitHub
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+        with:
+          name: lix-versions-${{ matrix.runner }}
+          path: lix-versions-${{ matrix.runner }}.jsonl
+          compression-level: 9
+          if-no-files-found: error
+          retention-days: 7

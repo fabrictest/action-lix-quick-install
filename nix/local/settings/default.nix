@@ -49,8 +49,11 @@ rec {
     };
   };
 
+  # https://git.peppe.rs/languages/statix/about/
   statix = lib.dev.mkNixago {
     output = "statix.toml";
+
+    packages = [ pkgs.statix ];
 
     data = {
       disabled = [ ];
@@ -58,10 +61,13 @@ rec {
     };
   };
 
+  # https://treefmt.com
   treefmt = lib.dev.mkNixago lib.cfg.treefmt {
 
     # NOTE(ttlgcc): Whenever in doubt about how to fix tool conflicts,
-    # follow this simple rule: format, then lint.
+    # follow this simple rule:
+    #
+    #     Format, then lint.
 
     # FIXME(ttlgcc): Separate settings per ecosystem.
 
@@ -78,6 +84,7 @@ rec {
 
       # All files
       formatter = {
+
         # https://waterlan.home.xs4all.nl/dos2unix.html
         dos2unix = {
           command = l.getExe' pkgs.dos2unix "dos2unix";
@@ -99,6 +106,7 @@ rec {
 
       # JSON
       formatter = {
+
         # https://github.com/caarlos0/jsonfmt
         jsonfmt = {
           command = l.getExe pkgs.jsonfmt;
@@ -112,6 +120,7 @@ rec {
 
       # Markdown
       formatter = {
+
         # https://zimbatm.github.io/mdsh/
         mdsh = {
           command = l.getExe pkgs.mdsh;
@@ -133,10 +142,13 @@ rec {
 
       # Nix
       formatter = {
+
         # https://github.com/astro/deadnix
         deadnix = {
           command = l.getExe pkgs.deadnix;
-          options = [ "--edit" ];
+          options = l.cli.toGNUCommandLine { } {
+            edit = true;
+          };
           includes = [ "*.nix" ];
           priority = -1;
         };
@@ -147,6 +159,7 @@ rec {
           includes = [ "*.nix" ];
         };
 
+        # https://git.peppe.rs/languages/statix/about/
         statix = {
           command = l.getExe (
             pkgs.writeShellScriptBin "statix-fix" ''
@@ -163,6 +176,7 @@ rec {
 
       # Ruby
       formatter = {
+
         # https://docs.rubocop.org
         rubocop = {
           command = l.getExe pkgs.rubocop;
@@ -172,6 +186,7 @@ rec {
 
       # Sh
       formatter = {
+
         # https://www.shellcheck.net/wiki/Home
         shellcheck = {
           command = l.getExe pkgs.shellcheck;
@@ -188,11 +203,11 @@ rec {
         # https://github.com/mvdan/sh#shfmt
         shfmt = {
           command = l.getExe pkgs.shfmt;
-          options = [
-            "--binary-next-line"
-            "--simplify"
-            "--write"
-          ];
+          options = l.cli.toGNUCommandLine { } {
+            binary-next-line = true;
+            simplify = true;
+            write = true;
+          };
           includes = [
             "*.bash"
             "*.sh"
@@ -208,16 +223,19 @@ rec {
         # https://github.com/google/yamlfmt/
         yamlfmt = {
           command = l.getExe pkgs.yamlfmt;
-          options = [ "-conf=${yamlfmt.configFile}" ];
+          options = l.cli.toGNUCommandLine { } {
+            conf = yamlfmt.configFile;
+          };
           includes = [ "*.yaml" ];
         };
       };
     };
   };
 
+  # https://github.com/google/yamlfmt/
   yamlfmt = lib.dev.mkNixago {
     output = "yamlfmt.yaml";
-
+    packages = [ pkgs.yamlfmt ];
     data = {
       line_ending = "lf";
       gitignore_excludes = true;
