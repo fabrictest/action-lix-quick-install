@@ -1,0 +1,67 @@
+---
+name: Test
+on:
+  workflow_call:
+    inputs:
+      support-list:
+        type: string
+        required: true
+    secrets:
+      CACHIX_AUTH_TOKEN:
+        description: |
+          The token with which to authenticate to Cachix.
+        required: true
+      CACHIX_NAME:
+        description: |
+          The name of the Cachix cache to use as test probe.
+        required: true
+jobs:
+  lix-on-runner:
+    strategy:
+      fail-fast: true
+      matrix:
+        support: ${{ fromJson(inputs.support-list) }}
+    name: Lix
+    runs-on: ${{ matrix.support.runs-on }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Download `/nix` tarballs from GitHub
+        id: lix-tarballs
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: lix-tarballs-${{ runner.os }}-${{ runner.arch }}
+      - name: Install Lix ${{ matrix.support.lix-version }}
+        uses: ./
+        with:
+          lix-version: ${{ matrix.support.lix-version }}
+          lix-on-tmpfs: true
+          tarballs-url: file://${{ steps.lix-tarballs.outputs.download-path }}
+      - name: Set up Cachix
+        if: ${{ github.repository_owner == 'fabrictest' }}
+        uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
+        with:
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          name: ${{ secrets.CACHIX_NAME }}
+          skipPush: true
+      - name: Verify that Lix was installed
+        shell: bash
+        run: |
+          nix-build -v --version
+      - name: Verify that one can add a file to the Lix store
+        id: nix-store-add
+        shell: bash
+        run: |
+          git rev-parse HEAD >probe
+          cat >>"$GITHUB_OUTPUT" <<EOF
+          probe=$(nix-store --add probe)
+          EOF
+      - name: Verify that one can push such file to Cachix
+        if: ${{ github.repository_owner == 'fabrictest' }}
+        shell: bash
+        env:
+          cache: ${{ secrets.CACHIX_NAME }}
+          probe: ${{ steps.nix-store-add.outputs.probe }}
+        run: |
+          cachix push "$cache" "$probe"
+      # FIXME(ttlgcc): Test FlakeHub uploads too.
