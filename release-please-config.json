@@ -3,16 +3,16 @@
   "always-update": true,
   "packages": {
     ".": {
-      "release-type": "simple",
       "exclude-paths": [
         ".github",
         "examples"
-      ]
+      ],
+      "release-type": "simple",
+      "version-file": "VERSION"
     }
   },
   "plugins": [
     "sentence-case"
   ],
   "pull-request-header": ":robot: I have created a release *beep* *boop*\n",
-  "version-file": "VERSION.txt"
 }
