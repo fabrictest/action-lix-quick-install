@@ -90,10 +90,12 @@ jobs:
         run: |
           gh release upload "$tag" lix-*.tar.*
       - name: Mark release PR as published
-        if: ${{ steps.release.outputs.release_created && steps.release.outputs.pr }}
+        if: ${{ steps.release.outputs.releases_created }}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-          pr_number: ${{ fromJson(steps.release.outputs.pr).number }}
+          commit: ${{ steps.checkout.outputs.commit }}
         run: |
-          gh pr edit "$pr_number" --add-label 'autorelease: published' --remove-label 'autorelease: tagged'
+          gh pr list --search "$commit"' is:merged label:"autorelease: tagged" sort:created-desc' --limit 1 --json number --jq '.[0].number' |
+              xargs -I {} -- gh pr edit {} --add-label 'autorelease: published' --remove-label 'autorelease: tagged'
+
