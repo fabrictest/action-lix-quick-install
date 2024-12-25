@@ -20,7 +20,7 @@ jobs:
     permissions:
       attestations: write
       id-token: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       tag: ${{ steps.release.outputs.release_created && steps.release.outputs.tag_name || '' }}
     steps:
