@@ -1,14 +1,21 @@
 ---
 name: CD
 on:
-  workflow_call:
-    secrets:
-      CICD_APP_ID:
-        required: true
-      CICD_PRIVATE_KEY:
-        required: true
+  push:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yaml
+    permissions:
+      id-token: write
   release:
+    needs:
+      - build
     name: Release
     uses: ./.github/workflows/release.yaml
     permissions:

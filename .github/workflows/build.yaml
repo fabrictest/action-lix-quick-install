@@ -3,10 +3,10 @@ name: Build
 on:
   workflow_call:
     outputs:
-      support-list:
-        value: ${{ jobs.support-list.outputs.json }}
+      support-matrix:
+        value: ${{ jobs.support-matrix.outputs.json }}
 jobs:
-  lix-tarballs:
+  lix-stores:
     strategy:
       fail-fast: true
       matrix:
@@ -15,7 +15,7 @@ jobs:
           - ubuntu-latest
           # NOTE(ttlgcc): macos-13 is the last Intel-powered macOS runner.
           - macos-13
-    name: Lix store
+    name: Lix stores
     runs-on: ${{ matrix.runs-on }}
     permissions:
       id-token: write
@@ -29,18 +29,15 @@ jobs:
           use-flakehub: false
       - name: Check out repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Build `/nix` tarballs
+      - name: Build Lix stores
         shell: bash
         run: |
-          nix build .#lix-tarballs
-      - name: Upload `/nix` tarballs to GitHub
+          nix build .#lix-stores
+      - name: Upload Lix stores to GitHub
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
-          name: lix-tarballs-${{ runner.os }}-${{ runner.arch }}
+          name: lix-stores-${{ runner.os }}-${{ runner.arch }}
           path: result/lix-*.tar.*
-          compression-level: 0
-          if-no-files-found: error
-          retention-days: 7
       - name: Generate file specifying which Lix versions were built for this platform
         shell: bash
         env:
@@ -48,33 +45,32 @@ jobs:
         run: |
           printf %s\\n result/lix-*.tar.* |
             cut -d - -f 2 |
-            jq --compact-output --raw-input --arg runs-on "$runs_on" '{"lix-version": .} + $ARGS.named' >lix-versions-"$runs_on".jsonl
-      - name: Upload lix-versions file to GitHub
+            jq --compact-output --raw-input --arg runs-on "$runs_on" '{"lix-version": .} + $ARGS.named' >support-"$runs_on".jsonl
+      - name: Upload support file to GitHub
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
-          name: lix-versions-${{ matrix.runs-on }}
-          path: lix-versions-${{ matrix.runs-on }}.jsonl
+          name: support-${{ matrix.runs-on }}
+          path: support-${{ matrix.runs-on }}.jsonl
           compression-level: 9
-          if-no-files-found: error
-          retention-days: 7
-  support-list:
+          retention-days: 1
+  support-matrix:
     needs:
-      - lix-tarballs
-    name: Support list
+      - lix-stores
+    name: Support matrix
     runs-on: ubuntu-latest
     outputs:
-      json: ${{ steps.list.outputs.json }}
+      json: ${{ steps.matrix.outputs.json }}
     steps:
-      - name: Download lix-versions files from GitHub
+      - name: Download support files from GitHub
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           path: .
-          pattern: lix-versions-*
+          pattern: support-*
           merge-multiple: true
-      - name: Generate support list
-        id: list
+      - name: Generate support matrix
+        id: matrix
         shell: bash
-        run: |
+        run: |-
           cat >>"$GITHUB_OUTPUT" <<EOF
-          json=$(cat *.jsonl | jq --compact-output --slurp .)
+          json=$(cat *.jsonl | jq --compact-output --slurp {support: .})
           EOF

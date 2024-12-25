@@ -5,9 +5,9 @@ let
 
   inherit (cell) pkgs;
 
-  mkLixTarball =
+  mkLixStore =
     lix:
-    pkgs.runCommand "mk-lix-tarball"
+    pkgs.runCommand "mk-lix-store"
       {
         buildInputs = [
           lix
@@ -26,13 +26,13 @@ let
       '';
 in
 {
-  lix-tarballs =
+  lix-stores =
     (pkgs.buildEnv {
-      name = "lix-tarballs";
+      name = "lix-stores";
       paths = l.pipe pkgs.lixVersions [
         (l.filterAttrs (_: l.isDerivation))
         (l.mapAttrs' (_: drv: l.nameValuePair drv.version drv))
-        (l.mapAttrsToList (_: mkLixTarball))
+        (l.mapAttrsToList (_: mkLixStore))
       ];
     }).overrideAttrs
       {

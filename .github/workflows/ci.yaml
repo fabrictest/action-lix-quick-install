@@ -9,20 +9,10 @@ on:
     tags-ignore:
       - "**"
   schedule:
-    - cron: "33 01 * * *"
-  workflow_call:
-    secrets:
-      CACHIX_AUTH_TOKEN:
-        description: |
-          The token with which to authenticate to Cachix.
-        required: true
-      CACHIX_NAME:
-        description: |
-          The name of the Cachix cache to use as test probe.
-        required: true
-#concurrency:
-#  group: ${{ github.workflow }}-${{ github.ref }}
-#  cancel-in-progress: true
+    - cron: 33 01 * * *
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     name: Build
@@ -35,7 +25,7 @@ jobs:
     name: Test
     uses: ./.github/workflows/test.yaml
     with:
-      support-list: ${{ needs.build.outputs.support-list }}
+      support-matrix: ${{ needs.build.outputs.support-matrix }}
     secrets:
       CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
       CACHIX_NAME: ${{ secrets.CACHIX_NAME }}
