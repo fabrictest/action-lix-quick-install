@@ -1,5 +1,19 @@
 # Changelog
 
+## [7.4.0](https://github.com/fabrictest/action-lix-quick-install/compare/v7.3.0...v7.4.0) (2024-12-25)
+
+
+### Features
+
+* Install Nix in the same disk as macOS ([#50](https://github.com/fabrictest/action-lix-quick-install/issues/50)) ([aebd70e](https://github.com/fabrictest/action-lix-quick-install/commit/aebd70e6398fc97d0c1f84f64874828eb40b9dca))
+
+
+### Bug Fixes
+
+* Path to version file ([80afe69](https://github.com/fabrictest/action-lix-quick-install/commit/80afe6987658d311a28037048b7f720ebcd638c6))
+* Version file ([38ee5de](https://github.com/fabrictest/action-lix-quick-install/commit/38ee5de48e6276ebefced6bfe38d177d720403c1))
+* Version in VERSION.txt ([869e0fb](https://github.com/fabrictest/action-lix-quick-install/commit/869e0fb19b4005b3ba5e690e59ba5a05e1378e10))
+
 ## [7.3.0](https://github.com/fabrictest/action-lix-quick-install/compare/v7.2.0...v7.3.0) (2024-12-21)
 
 
