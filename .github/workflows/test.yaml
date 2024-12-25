@@ -3,7 +3,7 @@ name: Test
 on:
   workflow_call:
     inputs:
-      support-list:
+      support-matrix:
         type: string
         required: true
     secrets:
